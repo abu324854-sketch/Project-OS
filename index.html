@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROJECT OS // 40-Yubiley Ekotizimi</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-panel: #111827;
+            --accent: #00f0ff;
+            --accent-secondary: #7000ff;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: rgba(0, 240, 255, 0.2);
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(112, 0, 255, 0.12), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.12), transparent 25%);
+        }
+
+        /* Top Bar / Status */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: var(--success);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            padding: 1.3rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: linear-gradient(to bottom, var(--accent), var(--accent-secondary));
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 0.4rem;
+            color: #fff;
+        }
+
+        /* Controls & Filter */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 260px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.6rem 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(0, 240, 255, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: var(--bg-panel);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.25s, border-color 0.25s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px -10px rgba(0, 240, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-number {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--accent);
+            background: rgba(0, 240, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
+
+        .project-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(112, 0, 255, 0.2);
+            color: #c4b5fd;
+            border: 1px solid rgba(112, 0, 255, 0.4);
+        }
+
+        .project-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+
+        .project-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1.2rem;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 1.3rem;
+        }
+
+        .tech-tag {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #d1d5db;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            padding: 0.6rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #33f3ff;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">⚡ PROJECT <span>OS</span> // v4.0</div>
+        <div class="sync-status">
+            <div class="pulse-dot"></div>
+            <span id="syncText">Real-vaqt sinxronizatsiya faol</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Statistika -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Jami Loyihalar</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Faol Tizimlar</div>
+                <div class="stat-value" id="activeCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Ekotizim Holati</div>
+                <div class="stat-value" style="font-size: 1.3rem; color: var(--accent);">40-Yubiley Arxitektura</div>
+            </div>
+        </div>
+
+        <!-- Qidiruv va Filtr -->
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-box" placeholder="Loyiha nomi yoki texnologiya bo‘yicha qidirish...">
+            <div class="filters" id="filterContainer">
+                <button class="filter-btn active" data-category="all">Barchasi</button>
+                <button class="filter-btn" data-category="Web">Veb-ilovalar</button>
+                <button class="filter-btn" data-category="AI">AI & Avtomatizatsiya</button>
+                <button class="filter-btn" data-category="Game">O‘yin & 3D</button>
+                <button class="filter-btn" data-category="Business">Biznes & Ta'lim</button>
+            </div>
+        </div>
+
+        <!-- Loyihalar Ro'yxati -->
+        <div class="projects-grid" id="projectsGrid"></div>
+    </div>
+
+    <script>
+        /**
+         * UZLIKSIZ SINXRONIZATSIYA DVIGATELI (SYNC ENGINE)
+         * Bu qism Admin Panel ilovasi bilan yagona ma'lumotlar oqimini ta'minlaydi.
+         * Keyinchalik API_URL o'rniga Firebase yoki Cloudflare Worker URL qo'yiladi.
+         */
+        const STORAGE_KEY = 'ecosystem_projects_v1';
+        const REMOTE_API_URL = ''; // Bulutli baza ulanganda shu yerga URL yoziladi
+
+        // Boshlang'ich namuna ma'lumotlar (baza bo'sh bo'lganda ko'rinadi)
+        const defaultProjects = [
+            {
+                id: 40,
+                title: "Project OS & Ekotizim Markazi",
+                category: "AI",
+                description: "Barcha 39 ta loyihani birlashtiruvchi va alohida Admin ilova bilan real-vaqtda sinxron ishlovchi boshqaruv tizimi.",
+                tech: ["HTML5", "CSS3", "Sync Engine", "Cloud API"],
+                liveUrl: "#",
+                codeUrl: "#",
+                status: "active"
+            },
+            {
+                id: 39,
+                title: "E-Commerce & Logistika Tizimi",
+                category: "Business",
+                description: "Buyurtmalarni qabul qilish, yetkazib berish va savdo jarayonlarini avtomatlashtiruvchi platforma.",
+                tech: ["JavaScript", "Cloudflare", "Database"],
+                liveUrl: "#",
+                codeUrl: "#",
+                status: "active"
+            }
+        ];
+
+        let projectsData = [];
+        let currentCategory = 'all';
+
+        // Ma'lumotlarni yuklash (Bulut + LocalStorage zaxira tizimi)
+        async function loadProjects() {
+            try {
+                if (REMOTE_API_URL) {
+                    const response = await fetch(REMOTE_API_URL);
+                    if (response.ok) {
+                        projectsData = await response.json();
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(projectsData));
+                        updateSyncBadge("Bulutli baza bilan ulangan", true);
+                    }
+                } else {
+                    const local = localStorage.getItem(STORAGE_KEY);
+                    if (local) {
+                        projectsData = JSON.parse(local);
+                    } else {
+                        projectsData = defaultProjects;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultProjects));
+                    }
+                }
+            } catch (error) {
+                // Internet uzilsa ham mahalliy keshdan uzluksiz ishlayveradi
+                const fallback = localStorage.getItem(STORAGE_KEY);
+                projectsData = fallback ? JSON.parse(fallback) : defaultProjects;
+                updateSyncBadge("Offline rejim (Keshdan ishlamoqda)", false);
+            }
+            renderProjects();
+        }
+
+        function updateSyncBadge(text, isOnline) {
+            const badgeText = document.getElementById('syncText');
+            badgeText.textContent = text;
+        }
+
+        // Ekranga chiqarish
+        function renderProjects() {
+            const grid = document.getElementById('projectsGrid');
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = projectsData.filter(p => {
+                const matchesCategory = currentCategory === 'all' || p.category === currentCategory;
+                const matchesSearch = p.title.toLowerCase().includes(searchQuery) || 
+                                      p.description.toLowerCase().includes(searchQuery) ||
+                                      p.tech.some(t => t.toLowerCase().includes(searchQuery));
+                return matchesCategory && matchesSearch;
+            });
+
+            // Statistikani yangilash
+            document.getElementById('totalCount').textContent = projectsData.length;
+            document.getElementById('activeCount').textContent = projectsData.filter(p => p.status === 'active').length;
+
+            grid.innerHTML = filtered.map(project => `
+                <div class="project-card">
+                    <div>
+                        <div class="card-header">
+                            <span class="project-number">#${String(project.id).padStart(2, '0')}</span>
+                            <span class="project-category">${project.category}</span>
+                        </div>
+                        <h3 class="project-title">${project.title}</h3>
+                        <p class="project-desc">${project.description}</p>
+                        <div class="tech-stack">
+                            ${project.tech.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="${project.liveUrl}" target="_blank" class="btn btn-primary">Ishga tushirish ↗</a>
+                        <a href="${project.codeUrl}" target="_blank" class="btn btn-secondary">Kod / Manba</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filtr tugmalari
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                renderProjects();
+            }
+        });
+
+        // Qidiruv
+        document.getElementById('searchInput').addEventListener('input', renderProjects);
+
+        // Boshqa oynada (Admin Panelda) ma'lumot o'zgarganda darhol yangilash
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEY) {
+                loadProjects();
+            }
+        });
+
+        // Ishga tushirish
+        loadProjects();
+    </script>
+</body>
+</html>
