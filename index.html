@@ -14,6 +14,7 @@
             --text-muted: #9ca3af;
             --border: rgba(0, 240, 255, 0.2);
             --success: #10b981;
+            --warn: #f59e0b;
         }
 
         * {
@@ -32,7 +33,6 @@
                 radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.12), transparent 25%);
         }
 
-        /* Top Bar / Status */
         header {
             display: flex;
             justify-content: space-between;
@@ -44,15 +44,14 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .logo {
             font-size: 1.3rem;
             font-weight: 800;
             letter-spacing: 1.5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .logo span {
@@ -71,28 +70,32 @@
             color: var(--success);
         }
 
+        .sync-status.offline {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.35);
+            color: var(--warn);
+        }
+
         .pulse-dot {
             width: 8px;
             height: 8px;
-            background-color: var(--success);
+            background-color: currentColor;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
             70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* Main Container */
         .container {
             max-width: 1300px;
             margin: 0 auto;
             padding: 2rem;
         }
 
-        /* Stats Dashboard */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -131,7 +134,6 @@
             color: #fff;
         }
 
-        /* Controls & Filter */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -180,7 +182,6 @@
             color: var(--accent);
         }
 
-        /* Projects Grid */
         .projects-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -281,17 +282,9 @@
             color: #000;
         }
 
-        .btn-primary:hover {
-            background: #33f3ff;
-        }
-
         .btn-secondary {
             background: rgba(255, 255, 255, 0.08);
             color: white;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
         }
     </style>
 </head>
@@ -299,14 +292,13 @@
 
     <header>
         <div class="logo">⚡ PROJECT <span>OS</span> // v4.0</div>
-        <div class="sync-status">
+        <div class="sync-status" id="syncBadge">
             <div class="pulse-dot"></div>
-            <span id="syncText">Real-vaqt sinxronizatsiya faol</span>
+            <span id="syncText">Firebase ulanmoqda...</span>
         </div>
     </header>
 
     <div class="container">
-        <!-- Statistika -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-title">Jami Loyihalar</div>
@@ -318,11 +310,10 @@
             </div>
             <div class="stat-card">
                 <div class="stat-title">Ekotizim Holati</div>
-                <div class="stat-value" style="font-size: 1.3rem; color: var(--accent);">40-Yubiley Arxitektura</div>
+                <div class="stat-value" style="font-size: 1.3rem; color: var(--accent);">40-Yubiley Firebase</div>
             </div>
         </div>
 
-        <!-- Qidiruv va Filtr -->
         <div class="controls">
             <input type="text" id="searchInput" class="search-box" placeholder="Loyiha nomi yoki texnologiya bo‘yicha qidirish...">
             <div class="filters" id="filterContainer">
@@ -334,118 +325,117 @@
             </div>
         </div>
 
-        <!-- Loyihalar Ro'yxati -->
         <div class="projects-grid" id="projectsGrid"></div>
     </div>
 
-    <script>
-        /**
-         * UZLIKSIZ SINXRONIZATSIYA DVIGATELI (SYNC ENGINE)
-         * Bu qism Admin Panel ilovasi bilan yagona ma'lumotlar oqimini ta'minlaydi.
-         * Keyinchalik API_URL o'rniga Firebase yoki Cloudflare Worker URL qo'yiladi.
-         */
-        const STORAGE_KEY = 'ecosystem_projects_v1';
-        const REMOTE_API_URL = ''; // Bulutli baza ulanganda shu yerga URL yoziladi
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        // Boshlang'ich namuna ma'lumotlar (baza bo'sh bo'lganda ko'rinadi)
-        const defaultProjects = [
-            {
-                id: 40,
-                title: "Project OS & Ekotizim Markazi",
-                category: "AI",
-                description: "Barcha 39 ta loyihani birlashtiruvchi va alohida Admin ilova bilan real-vaqtda sinxron ishlovchi boshqaruv tizimi.",
-                tech: ["HTML5", "CSS3", "Sync Engine", "Cloud API"],
-                liveUrl: "#",
-                codeUrl: "#",
-                status: "active"
-            },
-            {
-                id: 39,
-                title: "E-Commerce & Logistika Tizimi",
-                category: "Business",
-                description: "Buyurtmalarni qabul qilish, yetkazib berish va savdo jarayonlarini avtomatlashtiruvchi platforma.",
-                tech: ["JavaScript", "Cloudflare", "Database"],
-                liveUrl: "#",
-                codeUrl: "#",
-                status: "active"
-            }
-        ];
+        // O'Z FIREBASE KONFIGURATSIYANGIZNI SHU YERGA QO'YING
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const STORAGE_KEY = 'ecosystem_projects_firebase_v1';
+        const DB_PATH = 'projects_40_ecosystem';
 
         let projectsData = [];
         let currentCategory = 'all';
 
-        // Ma'lumotlarni yuklash (Bulut + LocalStorage zaxira tizimi)
-        async function loadProjects() {
-            try {
-                if (REMOTE_API_URL) {
-                    const response = await fetch(REMOTE_API_URL);
-                    if (response.ok) {
-                        projectsData = await response.json();
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(projectsData));
-                        updateSyncBadge("Bulutli baza bilan ulangan", true);
-                    }
-                } else {
-                    const local = localStorage.getItem(STORAGE_KEY);
-                    if (local) {
-                        projectsData = JSON.parse(local);
-                    } else {
-                        projectsData = defaultProjects;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultProjects));
-                    }
-                }
-            } catch (error) {
-                // Internet uzilsa ham mahalliy keshdan uzluksiz ishlayveradi
-                const fallback = localStorage.getItem(STORAGE_KEY);
-                projectsData = fallback ? JSON.parse(fallback) : defaultProjects;
-                updateSyncBadge("Offline rejim (Keshdan ishlamoqda)", false);
-            }
-            renderProjects();
+        const syncBadge = document.getElementById('syncBadge');
+        const syncText = document.getElementById('syncText');
+
+        function setSyncStatus(text, isOnline) {
+            syncText.textContent = text;
+            syncBadge.classList.toggle('offline', !isOnline);
         }
 
-        function updateSyncBadge(text, isOnline) {
-            const badgeText = document.getElementById('syncText');
-            badgeText.textContent = text;
-        }
-
-        // Ekranga chiqarish
         function renderProjects() {
             const grid = document.getElementById('projectsGrid');
             const searchQuery = document.getElementById('searchInput').value.toLowerCase();
 
             const filtered = projectsData.filter(p => {
                 const matchesCategory = currentCategory === 'all' || p.category === currentCategory;
-                const matchesSearch = p.title.toLowerCase().includes(searchQuery) || 
-                                      p.description.toLowerCase().includes(searchQuery) ||
-                                      p.tech.some(t => t.toLowerCase().includes(searchQuery));
+                const techList = Array.isArray(p.tech) ? p.tech : [];
+                const matchesSearch =
+                    (p.title || '').toLowerCase().includes(searchQuery) ||
+                    (p.description || '').toLowerCase().includes(searchQuery) ||
+                    techList.some(t => t.toLowerCase().includes(searchQuery));
                 return matchesCategory && matchesSearch;
             });
 
-            // Statistikani yangilash
             document.getElementById('totalCount').textContent = projectsData.length;
             document.getElementById('activeCount').textContent = projectsData.filter(p => p.status === 'active').length;
+
+            if (!filtered.length) {
+                grid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1;">Mos loyiha topilmadi.</p>`;
+                return;
+            }
 
             grid.innerHTML = filtered.map(project => `
                 <div class="project-card">
                     <div>
                         <div class="card-header">
                             <span class="project-number">#${String(project.id).padStart(2, '0')}</span>
-                            <span class="project-category">${project.category}</span>
+                            <span class="project-category">${project.category || 'Web'}</span>
                         </div>
                         <h3 class="project-title">${project.title}</h3>
-                        <p class="project-desc">${project.description}</p>
+                        <p class="project-desc">${project.description || ''}</p>
                         <div class="tech-stack">
-                            ${project.tech.map(t => `<span class="tech-tag">${t}</span>`).join('')}
+                            ${(project.tech || []).map(t => `<span class="tech-tag">${t}</span>`).join('')}
                         </div>
                     </div>
                     <div class="card-actions">
-                        <a href="${project.liveUrl}" target="_blank" class="btn btn-primary">Ishga tushirish ↗</a>
-                        <a href="${project.codeUrl}" target="_blank" class="btn btn-secondary">Kod / Manba</a>
+                        <a href="${project.liveUrl || '#'}" target="_blank" class="btn btn-primary">Ishga tushirish ↗</a>
+                        <a href="${project.codeUrl || '#'}" target="_blank" class="btn btn-secondary">Kod / Manba</a>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Filtr tugmalari
+        // Avval localStorage'dan darhol ko'rsatib, uzilmaslikni ta'minlaymiz
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+            projectsData = JSON.parse(cached);
+            renderProjects();
+        }
+
+        // Firebase ulanishini ishga tushirish
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const projectsRef = ref(db, DB_PATH);
+
+            onValue(projectsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const val = snapshot.val();
+                    projectsData = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+                    projectsData.sort((a, b) => Number(b.id) - Number(a.id));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(projectsData));
+                } else {
+                    projectsData = [];
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+                }
+                setSyncStatus("Firebase Real-Time ulangan", true);
+                renderProjects();
+            }, (error) => {
+                console.error(error);
+                setSyncStatus("Offline / Kesh rejimi", false);
+                renderProjects();
+            });
+        } catch (err) {
+            console.warn("Firebase config hali to'ldirilmagan yoki xato:", err);
+            setSyncStatus("Mahalliy kesh rejimi (Config kutilyapti)", false);
+            renderProjects();
+        }
+
         document.getElementById('filterContainer').addEventListener('click', (e) => {
             if (e.target.classList.contains('filter-btn')) {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -455,18 +445,7 @@
             }
         });
 
-        // Qidiruv
         document.getElementById('searchInput').addEventListener('input', renderProjects);
-
-        // Boshqa oynada (Admin Panelda) ma'lumot o'zgarganda darhol yangilash
-        window.addEventListener('storage', (e) => {
-            if (e.key === STORAGE_KEY) {
-                loadProjects();
-            }
-        });
-
-        // Ishga tushirish
-        loadProjects();
     </script>
 </body>
 </html>
